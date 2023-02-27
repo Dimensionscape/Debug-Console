@@ -6,5 +6,6 @@ package service;
 interface IMessage 
 {
 	public var type:String;
-	public var data:String;
+	public var data:Dynamic;
+	public var info:String;
 }

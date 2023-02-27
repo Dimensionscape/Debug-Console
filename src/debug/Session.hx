@@ -7,6 +7,7 @@ import openfl.events.ProgressEvent;
 import openfl.utils.ByteArray;
 import service.IMessage;
 import sys.FileSystem;
+import openfl.utils.Object;
 
 /**
  * ...
@@ -39,6 +40,7 @@ class Session
 		
 		date = Date.now();
 		socket.endian = LITTLE_ENDIAN;
+		socket.objectEncoding = AMF3;
 		socket.addEventListener(ProgressEvent.SOCKET_DATA, __onData);
 		socket.addEventListener(Event.CLOSE, __onClose);
 		this.socket = socket;
@@ -59,6 +61,7 @@ class Session
 			}
 			if (socket.bytesAvailable >= __messageLength){
 				var bytes:ByteArray = new ByteArray(__messageLength);
+				bytes.objectEncoding = AMF3;
 				socket.readBytes(bytes, 0, __messageLength);
 				
 				var messageObject:IMessage = bytes.readObject();
@@ -75,7 +78,10 @@ class Session
 			case HANDSHAKE:
 				__doHandshake();
 			case TRACE:
-				newLine(message.data);
+				var arr:Array<Dynamic> = message.data;
+				var log:String = arr.join(", ");
+				var info = message.info;
+				newLine('$info - $log');
 		}
 	}
 	
@@ -88,7 +94,9 @@ class Session
 	}
 	
 	public function close():Void{
-		socket.close();
+		if (socket.connected){
+			socket.close();
+		}
 	}
 	
 	public function save():Void{
